@@ -35,11 +35,7 @@ merged_mesh.remove_duplicated_triangles()
 merged_mesh.remove_unreferenced_vertices()
 merged_mesh.remove_degenerate_triangles()
 
-# Save or visualize the merged mesh if needed
-# o3d.io.write_triangle_mesh("merged_mesh.obj", merged_mesh)
-# o3d.visualization.draw_geometries([merged_mesh])
 
-# o3d.visualization.draw_geometries([merged_pcd])s
 points = np.asarray(merged_pcd.points)
 
 o3d.io.write_point_cloud("merged_point_cloud.pcd", merged_pcd)
@@ -76,18 +72,8 @@ width = 0.08765953779220581
 height = 0.019999999552965164
 depth = 0.029999999329447746
 
-# points = np.asarray(merged_pcd.points)
-# points = points / 2.5
-# merged_pcd.points = o3d.utility.Vector3dVector(points)
-
 gripper = plot_gripper_pro_max(center=translation, R=rotation, width=width, depth=depth, score=0.8, color=(1, 0, 0))
 
-# o3d.visualization.draw_geometries([merged_mesh, gripper],)
-# o3d.visualization.draw_geometries([merged_pcd, gripper],)
-
-
-# mesh, _ = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(merged_pcd, depth=9)
-# o3d.visualization.draw_geometries([mesh])
 scene = o3d.t.geometry.RaycastingScene()
 mesh_id = scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(merged_mesh))
 
