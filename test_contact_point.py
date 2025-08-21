@@ -35,6 +35,7 @@ merged_mesh.remove_duplicated_triangles()
 merged_mesh.remove_unreferenced_vertices()
 merged_mesh.remove_degenerate_triangles()
 
+# o3d.visualization.draw_geometries([merged_mesh, merged_pcd]) 
 
 points = np.asarray(merged_pcd.points)
 
@@ -45,94 +46,103 @@ translation = np.array([-0.00654207, -0.00167324, -0.05620303])
 rotation = [[-0.01589504,  0.99617106,  0.08596864],
             [-0.18111572, -0.08742573,  0.97956824],
             [ 0.98333335,  0.,          0.18181187]]
-
-
-
 rotation = np.array(rotation)
 
-x_axis = rotation[:, 0] + translation
-y_axis = rotation[:, 1] + translation
-z_axis = rotation[:, 2] + translation
+width = 0.08765953779220581
+height = 0.019999999552965164
+depth = 0.029999999329447746
 
-x_radius = create_radius(x_axis)
-y_radius = create_radius(y_axis)
-z_radius = create_radius(z_axis)
 
 arrow_x = create_direction_arrow(translation, rotation[:, 0], arrow_length=1, color=[1, 0, 0])
 arrow_y = create_direction_arrow(translation, rotation[:, 1], arrow_length=1, color=[0, 1, 0])
 arrow_z = create_direction_arrow(translation, rotation[:, 2], arrow_length=1, color=[0, 0, 1])
 
 
-# Plot a small sphere at the translation point
-sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.01)
-sphere.translate(translation)
-sphere.paint_uniform_color([0, 1, 0])  # green color
-
-width = 0.08765953779220581
-height = 0.019999999552965164
-depth = 0.029999999329447746
-
 gripper = plot_gripper_pro_max(center=translation, R=rotation, width=width, depth=depth, score=0.8, color=(1, 0, 0))
 
 scene = o3d.t.geometry.RaycastingScene()
 mesh_id = scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(merged_mesh))
 
-y_axis_t = rotation[:, 1] + translation
-y_axis_f = -rotation[:, 1] + translation
+ee_base_point = translation - rotation[:, 0] * depth
+finger_center_point = translation + rotation[:, 0] * depth
+inter_len = 0.001
+inter_num = int(depth * 2 / inter_len)
+print(f'inter_num: {inter_num}')
 
-hit_point_list = []
-hit_point_dis_list = []
+hit_point_list_lr = []
+hit_point_dis_list_lr = []
 
-for i in range(10):
-    y_axis_t += rotation[:, 0] * 0.01
-    y_axis_f += rotation[:, 0] * 0.01
-    y_axis_t = y_axis_t.tolist()
-    y_axis_f = y_axis_f.tolist()
+hit_point_list_rl = []
+hit_point_dis_list_rl = []
 
-    # 射线 (origin, direction)
-    rays = o3d.core.Tensor([ y_axis_t + y_axis_f ], dtype=o3d.core.Dtype.Float32)  # 从(0,0,0) 朝x方向
+for i in range(inter_num):
+    cur_point = ee_base_point + rotation[:, 0] * 2 * depth * i / inter_num
+    cur_point_l = cur_point + rotation[:, 1] * 0.5
+    cur_point_r = cur_point - rotation[:, 1] * 0.5
+    
+    radius_l = create_radius(cur_point_l, radius=0.002, color=[0, 0, 1])
+    radius_r = create_radius(cur_point_r, radius=0.002, color=[0, 0, 1])
+    direction_lr = cur_point_r - cur_point_l
+    direction_lr = direction_lr / np.linalg.norm(direction_lr)
+    direction_rl = cur_point_l - cur_point_r
+    direction_rl = direction_rl / np.linalg.norm(direction_rl)
+    
+    cur_point_l = cur_point_l.tolist()
+    cur_point_r = cur_point_r.tolist()
+    direction_rl = direction_rl.tolist()
+    direction_lr = direction_lr.tolist()
+    
+    
+    rays = o3d.core.Tensor([cur_point_l + direction_lr], dtype=o3d.core.Dtype.Float32) # 从l指向r
     ans = scene.cast_rays(rays)
 
     hit_dis = ans['t_hit'].numpy()
     hit_point = (rays[0,:3] + ans['t_hit'][0] * rays[0,3:6]).numpy()
     
     if hit_dis[0] != np.inf:
-        print(f'iter: {i + 10}')
-        print("Hit distance:", hit_dis)
-        print("Hit point:", hit_point)
-        show_radius = create_radius(hit_point, radius=0.01, color=[1, 0, 0])
-        # o3d.visualization.draw_geometries([merged_mesh, show_radius])
+        hit_point_list_lr.append(hit_point)
+        hit_point_dis_list_lr.append(hit_dis)
+    else:
+        hit_point_list_lr.append(None)
+        hit_point_dis_list_lr.append(None)
         
-        hit_point_list.append(hit_point)
-        hit_point_dis_list.append(hit_dis)
-
-for i in range(10):
-    y_axis_t -= rotation[:, 0] * 0.01
-    y_axis_f -= rotation[:, 0] * 0.01
-    y_axis_t = y_axis_t.tolist()
-    y_axis_f = y_axis_f.tolist()
-
-    # 射线 (origin, direction)
-    rays = o3d.core.Tensor([ y_axis_t + y_axis_f ], dtype=o3d.core.Dtype.Float32)  # 从(0,0,0) 朝x方向
+    rays = o3d.core.Tensor([cur_point_r + direction_rl], dtype=o3d.core.Dtype.Float32) # 从l指向r
     ans = scene.cast_rays(rays)
 
     hit_dis = ans['t_hit'].numpy()
     hit_point = (rays[0,:3] + ans['t_hit'][0] * rays[0,3:6]).numpy()
     
-    if hit_dis[0] != np.inf:
-        print(f'iter: {i + 10}')
-        print("Hit distance:", hit_dis)
-        print("Hit point:", hit_point)
-        show_radius = create_radius(hit_point, radius=0.01, color=[1, 0, 0])
-        # o3d.visualization.draw_geometries([merged_mesh, show_radius])
-        hit_point_list.append(hit_point)
-        hit_point_dis_list.append(hit_dis)
+    if hit_dis[0] != np.inf:        
+        hit_point_list_rl.append(hit_point)
+        hit_point_dis_list_rl.append(hit_dis)
+    else:
+        hit_point_list_rl.append(None)
+        hit_point_dis_list_rl.append(None)
+
+final_hit_point_pair_l = []
+final_hit_point_pair_r = []
+final_hit_dis_pair_l = []
+final_hit_dis_pair_r = []
+
+for i in range(len(hit_point_list_lr)):
+    if hit_point_list_lr[i] is not None and hit_point_list_rl[i] is not None:
+        final_hit_point_pair_l.append(hit_point_list_lr[i])
+        final_hit_point_pair_r.append(hit_point_list_rl[i])
+        final_hit_dis_pair_l.append(hit_point_dis_list_lr[i])
+        final_hit_dis_pair_r.append(hit_point_dis_list_rl[i])
+
         
-hit_point_np = np.array(hit_point_list)
-hit_dis_np = np.array(hit_point_dis_list)
+final_hit_point_pair_l = np.array(final_hit_point_pair_l)
+final_hit_dis_pair_l = np.array(final_hit_dis_pair_l)
+
+final_hit_point_pair_r = np.array(final_hit_point_pair_r)
+final_hit_dis_pair_r = np.array(final_hit_dis_pair_r)
+
+print(f'len final_hit_point_pair_l: {len(final_hit_point_pair_l)}, len final_hit_point_pair_r: {len(final_hit_point_pair_r)}')
 
 with open("hit_points.pkl", "wb") as f:
-    pickle.dump({"hit_points": hit_point_np, "hit_distances": hit_dis_np}, f)
+    pickle.dump({"final_hit_point_pair_l": final_hit_point_pair_l, "final_hit_dis_pair_l": final_hit_dis_pair_l,
+                 "final_hit_point_pair_r": final_hit_point_pair_r, "final_hit_dis_pair_r": final_hit_dis_pair_r}, f)
 
 
         
