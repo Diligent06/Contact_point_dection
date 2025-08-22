@@ -54,6 +54,12 @@ depth = 0.029999999329447746
 
 gripper = plot_gripper_pro_max(center=translation, R=rotation, width=width, depth=depth, score=0.8, color=(1, 0, 0))
 
+# left_point = translation + depth * rotation[:, 0] + width * rotation[:, 1] / 2
+# left_point_radius = create_radius(left_point, radius=0.01, color=[1, 0, 0])
+# right_point = translation + depth * rotation[:, 0] - width * rotation[:, 1] / 2
+# right_point_radius = create_radius(right_point, radius=0.01, color=[1, 0, 0])
+# contact_candidate_point_list.append(left_point_radius)
+# contact_candidate_point_list.append(right_point_radius)
 
 o3d.visualization.draw_geometries([pcd, gripper] + contact_candidate_point_list)
 

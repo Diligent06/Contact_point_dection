@@ -77,8 +77,8 @@ hit_point_dis_list_rl = []
 
 for i in range(inter_num):
     cur_point = ee_base_point + rotation[:, 0] * 2 * depth * i / inter_num
-    cur_point_l = cur_point + rotation[:, 1] * 0.5
-    cur_point_r = cur_point - rotation[:, 1] * 0.5
+    cur_point_l = cur_point + rotation[:, 1] * width / 2.0
+    cur_point_r = cur_point - rotation[:, 1] * width / 2.0
     
     radius_l = create_radius(cur_point_l, radius=0.002, color=[0, 0, 1])
     radius_r = create_radius(cur_point_r, radius=0.002, color=[0, 0, 1])
