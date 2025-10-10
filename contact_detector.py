@@ -9,7 +9,6 @@ import sys
 sys.path.append(os.getcwd())
 sys.path.append(join(os.getcwd(), 'contact_grasp_cal'))
 
-from grasp_utils import plot_gripper_pro_max, create_direction_arrow, create_radius
 import pickle
 
 
@@ -104,10 +103,10 @@ class ContactDetector:
         contact_candidate_point_list = []
         for i in range(len(final_hit_point_pair_l)):
             contact_point = final_hit_point_pair_l[i]
-            contact_candidate_point_list.append(create_radius(contact_point, radius=0.002, color=[1, 0, 0]))
+            contact_candidate_point_list.append(self.create_radius(contact_point, radius=0.002, color=[1, 0, 0]))
         for i in range(len(final_hit_point_pair_r)):
             contact_point = final_hit_point_pair_r[i]
-            contact_candidate_point_list.append(create_radius(contact_point, radius=0.002, color=[0, 1, 0]))
+            contact_candidate_point_list.append(self.create_radius(contact_point, radius=0.002, color=[0, 1, 0]))
 
         dis = 1000
         contact_id = -1
@@ -125,15 +124,15 @@ class ContactDetector:
     def visualize_contact_point(self, pcd, contact_point_l, contact_point_r, grasp_config):
         contact_candidate_point_list = []
         if contact_point_l is not None:
-            contact_candidate_point_list.append(create_radius(contact_point_l, radius=0.01, color=[0, 0, 1]))
+            contact_candidate_point_list.append(self.create_radius(contact_point_l, radius=0.01, color=[0, 0, 1]))
         if contact_point_r is not None:
-            contact_candidate_point_list.append(create_radius(contact_point_r, radius=0.01, color=[0, 0, 1]))
+            contact_candidate_point_list.append(self.create_radius(contact_point_r, radius=0.01, color=[0, 0, 1]))
         
         translation = grasp_config['translation']
         rotation = grasp_config['rotation']
         width = grasp_config['width']
         depth = grasp_config['depth']
-        gripper = plot_gripper_pro_max(center=translation, R=rotation, width=width, depth=depth, score=0.8, color=(1, 0, 0))
+        gripper = self.plot_gripper_pro_max(center=translation, R=rotation, width=width, depth=depth, score=0.8, color=(1, 0, 0))
         o3d.visualization.draw_geometries([pcd, gripper] + contact_candidate_point_list)
     
     def create_mesh_box(self, width, height, depth, dx=0, dy=0, dz=0):
