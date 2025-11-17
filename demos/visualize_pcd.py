@@ -1,6 +1,6 @@
 import open3d as o3d
 import pickle
-from grasp_utils import create_radius, plot_gripper_pro_max
+from utils.grasp_utils import create_radius, plot_gripper_pro_max
 import numpy as np
 
 with open('./hit_points.pkl', 'rb') as f:

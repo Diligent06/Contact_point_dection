@@ -18,11 +18,13 @@ class ContactDetector:
         pass
     
     def find_lr_contact(self, obj_mesh, grasp_config):
-        translation = grasp_config['translation']
         rotation = grasp_config['rotation']
         width = grasp_config['width']
         depth = grasp_config['depth']
         ee_base_point = grasp_config['ee_base_point']
+        
+        approach_vec = grasp_config['approach']
+        binormal_vec = grasp_config['binormal']
         
         scene = o3d.t.geometry.RaycastingScene()
         mesh_id = scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(obj_mesh))
@@ -38,9 +40,9 @@ class ContactDetector:
         hit_point_dis_list_rl = []
 
         for i in range(inter_num):
-            cur_point = ee_base_point + rotation[:, 0] * depth * i / inter_num
-            cur_point_l = cur_point + rotation[:, 1] * width / 2.0
-            cur_point_r = cur_point - rotation[:, 1] * width / 2.0
+            cur_point = ee_base_point + approach_vec * depth * i / inter_num
+            cur_point_l = cur_point + binormal_vec * width / 2.0
+            cur_point_r = cur_point - binormal_vec * width / 2.0
             
             direction_lr = cur_point_r - cur_point_l
             direction_lr = direction_lr / np.linalg.norm(direction_lr)

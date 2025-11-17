@@ -1,10 +1,10 @@
 import open3d as o3d
 import numpy as np
 
-from grasp_utils import plot_gripper_pro_max, create_direction_arrow, create_radius
+from utils.grasp_utils import plot_gripper_pro_max, create_direction_arrow, create_radius
 import pickle
 
-pcd_paths = ['./8554/objs/original-1.obj', './8554/objs/original-2.obj']
+pcd_paths = ['../8554/objs/original-1.obj', '../8554/objs/original-2.obj']
 
 # Merge all point clouds into one
 merged_pcd = o3d.geometry.PointCloud()
