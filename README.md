@@ -1,3 +1,5 @@
+# Functionality: This repo can be use to find contact points of a two-finger gripper with object mesh in a simualtor.
+
 # 1. Visualize gripper mesh in open3d
 utils/visualize_gripper.py
 
